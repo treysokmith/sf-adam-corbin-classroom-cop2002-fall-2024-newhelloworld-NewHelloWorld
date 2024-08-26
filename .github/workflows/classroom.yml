@@ -1,0 +1,43 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Test Output (print statement outside of function)
+      id: test-output-print-statement-outside-of-function
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: Test Output (print statement outside of function)
+        setup-command: ''
+        command: python mine.py
+        input: ''
+        expected-output: Hello world!
+        comparison-method: exact
+        timeout: 1
+        max-score: 50
+    - name: Pytest Test Case (test function)
+      id: pytest-test-case-test-function
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Pytest Test Case (test function)
+        setup-command: ''
+        command: pytest
+        timeout: 1
+        max-score: 50
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        TEST-OUTPUT-PRINT-STATEMENT-OUTSIDE-OF-FUNCTION_RESULTS: "${{steps.test-output-print-statement-outside-of-function.outputs.result}}"
+        PYTEST-TEST-CASE-TEST-FUNCTION_RESULTS: "${{steps.pytest-test-case-test-function.outputs.result}}"
+      with:
+        runners: test-output-print-statement-outside-of-function,pytest-test-case-test-function
